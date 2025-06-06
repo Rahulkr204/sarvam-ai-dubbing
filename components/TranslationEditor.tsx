@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button, Spin, Typography, message, Alert, Input } from 'antd';
 import { useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
@@ -49,8 +49,14 @@ const SpeakerCard: React.FC<{
   end: number;
   sourceLang: string;
   targetLang: string;
-}> = ({ speaker, original, translation, onEditOriginal, onEditTranslation, editedOriginal, editedTranslation, start, end, sourceLang, targetLang }) => (
-  <div className="rounded-2xl shadow border border-gray-200 bg-white mb-4 p-0 overflow-hidden">
+  active?: boolean;
+}> = ({ speaker, original, translation, onEditOriginal, onEditTranslation, editedOriginal, editedTranslation, start, end, sourceLang, targetLang, active }) => (
+  <div className={
+    'rounded-2xl shadow bg-white mb-4 p-0 overflow-hidden hover:border-blue-200 ' +
+    (active
+      ? 'border-2 border-blue-300 ring-2 ring-blue-200 bg-blue-50 transition-all'
+      : 'border border-gray-200')
+  }>
     <div className="flex items-center gap-2 px-4 pt-3 pb-1">
       <span className={`w-3 h-3 rounded-full ${getSpeakerColor(speaker)}`}></span>
       <span className="font-semibold text-gray-700 text-sm">{speaker}</span>
@@ -87,12 +93,31 @@ const SpeakerCard: React.FC<{
   </div>
 );
 
-const TranslationEditor: React.FC = () => {
+interface TranslationEditorProps {
+  subtitles?: { start: number; end: number; text: string; translation: string }[];
+  onCardClick?: (start: number) => void;
+  currentTime?: number;
+}
+
+const TranslationEditor: React.FC<TranslationEditorProps> = ({ subtitles: propSubtitles, onCardClick, currentTime }) => {
   const sourceLang = useSelector((state: RootState) => state.video.sourceLang);
   const targetLang = useSelector((state: RootState) => state.video.targetLang);
   const [loading, setLoading] = useState(false);
-  const [subtitles, setSubtitles] = useState(DUMMY_SUBTITLES);
+  const [subtitles, setSubtitles] = useState(propSubtitles || DUMMY_SUBTITLES);
   const [edited, setEdited] = useState<{ [k: number]: { original: boolean; translation: boolean } }>({});
+
+  // Find active subtitle index
+  const activeIdx = currentTime !== undefined && subtitles.length > 0
+    ? subtitles.findIndex(s => currentTime >= s.start && currentTime < s.end)
+    : -1;
+
+  // Refs for auto-scroll
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  useEffect(() => {
+    if (activeIdx >= 0 && cardRefs.current[activeIdx]) {
+      cardRefs.current[activeIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [activeIdx]);
 
   const handleGenerate = () => {
     if (!targetLang) {
@@ -101,7 +126,7 @@ const TranslationEditor: React.FC = () => {
     }
     setLoading(true);
     setTimeout(() => {
-      setSubtitles(DUMMY_SUBTITLES);
+      setSubtitles(propSubtitles || DUMMY_SUBTITLES);
       setLoading(false);
     }, 1000);
   };
@@ -135,20 +160,28 @@ const TranslationEditor: React.FC = () => {
       {loading && <Spin tip="Generating translation..." />}
       <div className="flex-1 overflow-y-auto min-h-0 px-6">
         {!loading && subtitles.map((sub, idx) => (
-          <SpeakerCard
-            key={sub.key}
-            speaker={sub.speaker}
-            original={sub.text}
-            translation={sub.translation}
-            onEditOriginal={v => handleEdit(idx, 'original', v)}
-            onEditTranslation={v => handleEdit(idx, 'translation', v)}
-            editedOriginal={!!edited[idx]?.original}
-            editedTranslation={!!edited[idx]?.translation}
-            start={sub.start}
-            end={sub.end}
-            sourceLang={sourceLang}
-            targetLang={targetLang}
-          />
+          <div
+            key={idx}
+            ref={el => { cardRefs.current[idx] = el; }}
+            onClick={() => onCardClick && onCardClick(sub.start)}
+            style={{ cursor: onCardClick ? 'pointer' : undefined }}
+            className={'mb-2'}
+          >
+            <SpeakerCard
+              speaker={'EN'}
+              original={sub.text}
+              translation={sub.translation}
+              onEditOriginal={v => handleEdit(idx, 'original', v)}
+              onEditTranslation={v => handleEdit(idx, 'translation', v)}
+              editedOriginal={!!edited[idx]?.original}
+              editedTranslation={!!edited[idx]?.translation}
+              start={sub.start}
+              end={sub.end}
+              sourceLang={sourceLang}
+              targetLang={targetLang}
+              active={activeIdx === idx}
+            />
+          </div>
         ))}
       </div>
     </div>

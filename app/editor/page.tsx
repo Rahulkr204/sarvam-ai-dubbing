@@ -5,18 +5,39 @@ import TranslationEditor from '../../components/TranslationEditor';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../lib/store';
 import TimelineControls from '../../components/TimelineControls';
-
-const DUMMY_DURATION = 30;
+import { parseAndAlignSubtitles } from '../../lib/subtitleUtils';
+import { useRouter } from 'next/navigation';
 
 const EditorPage = () => {
   const videoUrl = useSelector((state: RootState) => state.video.videoUrl);
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [trim, setTrim] = useState<[number, number]>([0, 30]);
+  const [trim, setTrim] = useState<[number, number]>([0, 0]);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(0.6);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState(0);
+  const [alignedSubtitles, setAlignedSubtitles] = useState<any[]>([]);
+
+  // Redirect to / if no videoUrl
+  useEffect(() => {
+    if (!videoUrl) {
+      router.push('/');
+    }
+  }, [videoUrl, router]);
+
+  // Fetch and align subtitles on mount
+  useEffect(() => {
+    async function fetchSubs() {
+      const [eng, hin] = await Promise.all([
+        fetch('/audio/demo_en.srt').then(r => r.text()),
+        fetch('/audio/demo.srt').then(r => r.text()),
+      ]);
+      setAlignedSubtitles(parseAndAlignSubtitles(eng, hin));
+    }
+    fetchSubs();
+  }, []);
 
   // Update duration when video loads
   const handleLoadedMetadata = () => {
@@ -30,15 +51,21 @@ const EditorPage = () => {
   const handlePlayPause = () => {
     setPlaying(p => {
       const next = !p;
-      if (next && videoRef.current) {
-        // Only reset to trim[0] if at end of trim
-        if (videoRef.current.currentTime >= trim[1] || videoRef.current.currentTime < trim[0]) {
-          videoRef.current.currentTime = trim[0];
-          setCurrentTime(trim[0]);
+      if (videoRef.current) {
+        if (next) {
+          // Only reset to trim[0] if at end of trim
+          if (videoRef.current.currentTime >= trim[1] || videoRef.current.currentTime < trim[0]) {
+            videoRef.current.currentTime = trim[0];
+            setCurrentTime(trim[0]);
+          }
+          if (videoRef.current.paused) {
+            videoRef.current.play().catch(() => {});
+          }
+        } else {
+          if (!videoRef.current.paused) {
+            videoRef.current.pause();
+          }
         }
-        videoRef.current.play();
-      } else if (videoRef.current) {
-        videoRef.current.pause();
       }
       return next;
     });
@@ -105,7 +132,17 @@ const EditorPage = () => {
             <h1 className="text-2xl font-bold mb-4">Translate & Edit Subtitles</h1>
           </div>
           <div className="flex-1 min-h-0">
-            <TranslationEditor />
+            <TranslationEditor
+              subtitles={alignedSubtitles}
+              currentTime={currentTime}
+              onCardClick={start => {
+                if (videoRef.current) {
+                  videoRef.current.currentTime = start;
+                  videoRef.current.pause();
+                }
+                setCurrentTime(start);
+              }}
+            />
           </div>
         </div>
         {/* Right Panel: Video Player */}
@@ -126,19 +163,23 @@ const EditorPage = () => {
       </div>
       {/* Bottom: Timeline Controls */}
       <div className="h-[20%] w-full border-t bg-white flex flex-col items-center justify-center">
-        <TimelineControls
-          duration={duration}
-          trim={trim}
-          onTrimChange={setTrim}
-          currentTime={currentTime}
-          onSeek={handleSeek}
-          muted={muted}
-          onMuteChange={setMuted}
-          volume={volume}
-          onVolumeChange={setVolume}
-          playing={playing}
-          onPlayPause={handlePlayPause}
-        />
+        {duration > 0 ? (
+          <TimelineControls
+            duration={duration}
+            trim={trim}
+            onTrimChange={setTrim}
+            currentTime={currentTime}
+            onSeek={handleSeek}
+            muted={muted}
+            onMuteChange={setMuted}
+            volume={volume}
+            onVolumeChange={setVolume}
+            playing={playing}
+            onPlayPause={handlePlayPause}
+          />
+        ) : (
+          <div className="text-gray-400 text-sm py-8">Loading video...</div>
+        )}
       </div>
     </div>
   );

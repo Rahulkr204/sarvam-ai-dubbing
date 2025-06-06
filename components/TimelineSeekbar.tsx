@@ -2,13 +2,13 @@
 
 import React, { useRef } from 'react';
 
-// Dummy tracks and blocks for visual rows
-const DUMMY_TRACKS = [
+// Replace DUMMY_TRACKS with a dynamic tracks array based on duration
+const getTracks = (duration: number) => [
   {
     key: 'track1',
     color: '#c7d2fe', // pastel blue
     blocks: [
-      { key: 1, start: 0, end: 30 },
+      { key: 1, start: 0, end: duration },
     ],
   },
 ];
@@ -128,8 +128,10 @@ const TimelineSeekbar: React.FC<TimelineSeekbarProps> = ({
     );
   }
 
+  const tracks = getTracks(duration);
+
   // Render tracks and blocks
-  const trackRows = DUMMY_TRACKS.map((track, i) => (
+  const trackRows = tracks.map((track, i) => (
     <div
       key={track.key}
       className="absolute left-0 flex items-center"
