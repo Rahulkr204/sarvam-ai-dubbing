@@ -2,16 +2,16 @@
 
 import React, { useRef } from 'react';
 
-// Replace DUMMY_TRACKS with a dynamic tracks array based on duration
-const getTracks = (duration: number) => [
-  {
-    key: 'track1',
-    color: '#c7d2fe', // pastel blue
-    blocks: [
-      { key: 1, start: 0, end: duration },
-    ],
-  },
-];
+interface TrackBlock {
+  key: number | string;
+  start: number;
+  end: number;
+}
+interface Track {
+  key: string;
+  color: string;
+  blocks: TrackBlock[];
+}
 
 interface TimelineSeekbarProps {
   duration: number;
@@ -19,7 +19,9 @@ interface TimelineSeekbarProps {
   onTrimChange: (val: [number, number]) => void;
   currentTime: number;
   onSeek: (val: number) => void;
+  tracks?: Track[];
   children?: React.ReactNode;
+  className?: string;
 }
 
 const HANDLE_SIZE = 18;
@@ -33,12 +35,20 @@ const TimelineSeekbar: React.FC<TimelineSeekbarProps> = ({
   onTrimChange,
   currentTime,
   onSeek,
+  tracks = [
+    {
+      key: 'default',
+      color: '#c7d2fe',
+      blocks: [{ key: 1, start: 0, end: duration }],
+    },
+  ],
   children,
+  className = '',
 }) => {
   const barRef = useRef<HTMLDivElement>(null);
 
   // Use barRef's clientWidth for calculations
-  const [barWidth, setBarWidth] = React.useState(800);
+  const [barWidth, setBarWidth] = React.useState(0);
   React.useEffect(() => {
     if (barRef.current) {
       setBarWidth(barRef.current.clientWidth);
@@ -107,7 +117,6 @@ const TimelineSeekbar: React.FC<TimelineSeekbarProps> = ({
   function getNiceInterval(total: number) {
     const targetIntervals = 12;
     const rough = total / targetIntervals;
-    // Nice round numbers: 1, 2, 5, 10, 15, 30, 60, 120, 300, 600, etc.
     const nice = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600];
     for (let i = 0; i < nice.length; i++) {
       if (rough <= nice[i]) return nice[i];
@@ -127,8 +136,6 @@ const TimelineSeekbar: React.FC<TimelineSeekbarProps> = ({
       </div>
     );
   }
-
-  const tracks = getTracks(duration);
 
   // Render tracks and blocks
   const trackRows = tracks.map((track, i) => (
@@ -150,8 +157,10 @@ const TimelineSeekbar: React.FC<TimelineSeekbarProps> = ({
             left: timeToPx(block.start),
             width: timeToPx(block.end) - timeToPx(block.start),
             height: '40px',
+            background: track.color,
             boxShadow: '0 1px 4px 0 rgba(0,0,0,0.04)',
             border: '1px solid #fff',
+            opacity: 0.7,
           }}
         />
       ))}
@@ -160,20 +169,18 @@ const TimelineSeekbar: React.FC<TimelineSeekbarProps> = ({
 
   // Main timeline bar (seekbar)
   return (
-    <div className="relative w-full flex flex-col items-center bg-white">
-      {/* Start/end time at edges */}
-
+    <div className={`relative mx-auto max-w-[100%] min-w-[600px] w-full px-8 ${className}`}>
       <div
         ref={barRef}
         className="relative w-full overflow-visible"
-        style={{ height: '88px', userSelect: 'none' }}
+        style={{ height: `80px`, userSelect: 'none' }}
       >
-        {/* 5s interval ticks and labels */}
+        {/* Interval ticks and labels */}
         {intervals}
         {/* Gray background bar */}
         <div
           className="absolute left-0 top-0 h-10 rounded-md bg-gray-200 z-9"
-          style={{ width: barWidth }}
+          style={{ width: '100%' }}
         />
         {/* Selected (trimmed) region */}
         <div
@@ -181,7 +188,34 @@ const TimelineSeekbar: React.FC<TimelineSeekbarProps> = ({
           style={{ left: timeToPx(trim[0]), width: timeToPx(trim[1]) - timeToPx(trim[0]) }}
         />
         {/* Track rows */}
-        {trackRows}
+        {tracks.map((track, i) => (
+          <div
+            key={track.key}
+            className="absolute left-0 flex items-center"
+            style={{
+              top: i * (TRACK_HEIGHT + TRACK_GAP),
+              height: '40px',
+              width: '100%',
+            }}
+          >
+            {track.blocks.map(block => (
+              <div
+                key={block.key}
+                className="rounded-md"
+                style={{
+                  position: 'absolute',
+                  left: timeToPx(block.start),
+                  width: timeToPx(block.end) - timeToPx(block.start),
+                  height: '40px',
+                  background: track.color,
+                  boxShadow: '0 1px 4px 0 rgba(0,0,0,0.04)',
+                  border: '1px solid #fff',
+                  opacity: 0.7,
+                }}
+              />
+            ))}
+          </div>
+        ))}
         {/* Start handle */}
         <div
           className="absolute w-2 top-1 h-8 bg-blue-300 rounded-sm cursor-ew-resize border-1 border-blue-400 shadow z-100"

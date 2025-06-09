@@ -31,14 +31,24 @@ const VideoUploader: React.FC = () => {
       message.error('You can only upload MP4 files!');
       return Upload.LIST_IGNORE;
     }
-    setLoading(true);
-    setTimeout(() => {
-      const url = URL.createObjectURL(file);
+    // Check duration before accepting
+    const url = URL.createObjectURL(file);
+    const tempVideo = document.createElement('video');
+    tempVideo.preload = 'metadata';
+    tempVideo.src = url;
+    tempVideo.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(url);
+      if (tempVideo.duration > 180) {
+        message.error('Video must be 3 minutes or less.');
+        setLoading(false);
+        return;
+      }
       setVideoUrl(url);
       setVideoFile(file);
       setLoading(false);
       dispatch(setVideo({ file, url }));
-    }, 1500);
+    };
+    setLoading(true);
     return false;
   };
 

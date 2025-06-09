@@ -32,16 +32,6 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({
   playing,
   onPlayPause,
 }) => {
-  const [exporting, setExporting] = useState(false);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-
-  const handleExport = () => {
-    setExporting(true);
-    setTimeout(() => {
-      setExporting(false);
-      setDownloadUrl('/dummy-dubbed-video.mp4');
-    }, 1500);
-  };
 
   return (
     <div className="w-full flex flex-col h-full gap-2 px-8 py-1 items-start">
@@ -52,7 +42,6 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({
           onClick={onPlayPause}
           type="default"
           shape="circle"
-          size="large"
         />
         <Switch
           checkedChildren={<SoundFilled />}
@@ -71,35 +60,6 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({
         />
         <span className="text-xs text-gray-500 w-8 text-right">{Math.round(volume * 100)}</span>
       </div>
-      {/* Timeline Seekbar */}
-      <TimelineSeekbar
-        duration={duration}
-        trim={trim}
-        onTrimChange={onTrimChange}
-        currentTime={currentTime}
-        onSeek={onSeek}
-      />
-      {/* Export button at extreme right bottom */}
-      {/* <div className="absolute right-8 bottom-4 flex items-center gap-2">
-        <Button
-          type="primary"
-          icon={<DownloadOutlined />}
-          loading={exporting}
-          onClick={handleExport}
-          size="middle"
-        >
-          Export Dubbed Video
-        </Button>
-        {downloadUrl && !exporting && (
-          <a
-            href={downloadUrl}
-            download
-            className="ml-2 text-blue-600 underline text-sm"
-          >
-            Download .mp4
-          </a>
-        )}
-      </div> */}
     </div>
   );
 };
