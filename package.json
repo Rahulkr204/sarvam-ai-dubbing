@@ -15,10 +15,8 @@
     "rc-slider": "^11.1.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-player": "^2.16.0",
     "react-redux": "^9.2.0",
     "sarvamai": "^0.1.5",
-    "video.js": "^8.22.0",
     "wavesurfer.js": "^7.9.5"
   },
   "devDependencies": {
