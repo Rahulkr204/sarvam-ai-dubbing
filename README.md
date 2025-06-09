@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sarvam AI: Frontend Assignment
 
 ## Getting Started
 
@@ -14,23 +14,41 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Homepage
+- Create new dubbing projects by providing:
+  - Project name (e.g. "Motivation Speech...")
+  - Upload source video file (MP4 format, max 3 minutes)
+  - Select source language (English)
+  - Select target language (Hindi)
+  - Start dubbing to proceed to editor
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Editor Page
+- Translation Editor
+  - View and edit subtitles extracted from video
+  - Generated VTT subtitle file with timestamps
+  - Initial dubbed audio generated using Sarvam TTS
+  - Edit subtitle text and timing
 
-## Learn More
+- Video Player
+  - Preview video with subtitles
+  - Muted source video by default
+  - Toggle between original and dubbed audio
+  - Subtitle track integration via HTML5 track element
 
-To learn more about Next.js, take a look at the following resources:
+- Timeline Controls
+  - Visual timeline showing video duration
+  - Switch between original and dubbed audio tracks
+  - Volume control slider for audio tracks
+  - Trim video using drag handles
+  - Synchronized subtitles and audio for trimmed section
+  - Export final dubbed video with selected options
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+![Sarvam Dubbing Studio Interface](/public/image.jpeg)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Demo Video
 
-## Deploy on Vercel
+[[Sarvam Dubbing Studio Demo]](https://www.loom.com/share/da8e295f2ddb464ca88b2ce9bd4024dc)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For trying out features, download this file:
