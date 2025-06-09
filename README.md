@@ -49,6 +49,9 @@ bun dev
 
 ## Demo Video
 
-[[Sarvam Dubbing Studio Demo]](https://www.loom.com/share/da8e295f2ddb464ca88b2ce9bd4024dc)
+[Sarvam Dubbing Studio Demo](https://www.loom.com/share/da8e295f2ddb464ca88b2ce9bd4024dc)
 
-For trying out features, download this file:
+For trying out features, download this file: [Sample Video](https://github.com/Rahulkr204/sarvam-ai-dubbing/blob/main/public/demo_video.mp4)
+
+
+Try here: https://sarvam-ai-dubbing.vercel.app/
